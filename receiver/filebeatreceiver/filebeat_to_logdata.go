@@ -1,4 +1,4 @@
-// Copyright 2020, OpenTelemetry Authors
+// Copyright 2022, OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package filebeatreceiver
+package filebeatreceiver // import "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filebeatreceiver"
 
 import (
 	"errors"
@@ -64,9 +64,7 @@ func FilebeatToLogData(logger *zap.Logger, batch *lj.Batch) (plog.Logs, error) {
 	}
 	sl.Scope().SetName(instrumentLibrary)
 	sl.Scope().SetVersion(instrumentLibraryVersion)
-
 	return ld, nil
-
 }
 
 func addAttributeValue(logger *zap.Logger, originalValue interface{}, dest pcommon.Value) error {

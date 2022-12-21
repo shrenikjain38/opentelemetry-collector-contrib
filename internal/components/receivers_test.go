@@ -169,6 +169,9 @@ func TestDefaultReceivers(t *testing.T) {
 			receiver: "expvar",
 		},
 		{
+			receiver: "filebeat",
+		},
+		{
 			receiver: "filelog",
 			getConfigFn: func() component.Config {
 				cfg := rcvrFactories["filelog"].CreateDefaultConfig().(*filelogreceiver.FileLogConfig)

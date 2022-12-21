@@ -1,4 +1,4 @@
-// Copyright 2019, OpenTelemetry Authors
+// Copyright 2022, OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package filebeatreceiver
+package filebeatreceiver // import "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filebeatreceiver"
 
 import (
 	"context"
@@ -20,6 +20,7 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/receiver"
 )
 
 // This file implements factory for Filebeat receiver.
@@ -33,14 +34,14 @@ const (
 )
 
 // NewFactory creates a factory for Filebeat receiver.
-func NewFactory() component.ReceiverFactory {
-	return component.NewReceiverFactory(typeStr, createDefaultConfig, component.WithLogsReceiver(createLogsReceiver, component.StabilityLevelBeta))
+func NewFactory() receiver.Factory {
+	return receiver.NewFactory(typeStr, createDefaultConfig, receiver.WithLogs(createLogsReceiver, component.StabilityLevelBeta))
 }
 
 // CreateDefaultConfig creates the default configuration for Filebeat receiver.
-func createDefaultConfig() config.Receiver {
+func createDefaultConfig() component.Config {
 	return &Config{
-		ReceiverSettings: config.NewReceiverSettings(config.NewComponentID(typeStr)),
+		ReceiverSettings: config.NewReceiverSettings(component.NewID(typeStr)),
 		Endpoint:         defaultEndpoint,
 	}
 }
@@ -48,10 +49,10 @@ func createDefaultConfig() config.Receiver {
 // createLogsReceiver creates a logs receiver based on provided config.
 func createLogsReceiver(
 	_ context.Context,
-	params component.ReceiverCreateSettings,
-	cfg config.Receiver,
+	params receiver.CreateSettings,
+	cfg component.Config,
 	consumer consumer.Logs,
-) (component.LogsReceiver, error) {
+) (receiver.Logs, error) {
 
 	rCfg := cfg.(*Config)
 	return NewLogsReceiver(params.Logger, *rCfg, consumer)

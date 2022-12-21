@@ -1,4 +1,4 @@
-// Copyright 2020, OpenTelemetry Authors
+// Copyright 2022, OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package filebeatreceiver
+package filebeatreceiver // import "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filebeatreceiver"
 
 import (
 	"go.opentelemetry.io/collector/config"
@@ -26,7 +26,5 @@ type Config struct {
 	Endpoint string `mapstructure:"endpoint"`
 
 	// TLSSetting struct exposes TLS client configuration.
-	TLSSetting *configtls.TLSServerSetting `mapstructure:"tls_settings, omitempty"`
-
-	// TODO allow users to add additional resource key value pairs?
+	TLSSetting *configtls.TLSServerSetting `mapstructure:"tls, omitempty"`
 }

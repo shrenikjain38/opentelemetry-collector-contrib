@@ -1,4 +1,4 @@
-// Copyright 2019, OpenTelemetry Authors
+// Copyright 2022, OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -14,4 +14,4 @@
 
 // Package filebeatreceiver implements a receiver that can be used by the
 // OpenTelemetry collector to receive data in the lumberjack formats.
-package filebeatreceiver
+package filebeatreceiver // import "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filebeatreceiver"

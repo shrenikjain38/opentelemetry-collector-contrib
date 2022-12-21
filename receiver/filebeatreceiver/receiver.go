@@ -1,4 +1,4 @@
-// Copyright 2020, OpenTelemetry Authors
+// Copyright 2022, OpenTelemetry Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package filebeatreceiver
+package filebeatreceiver // import "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filebeatreceiver"
 
 import (
 	"context"
@@ -24,6 +24,7 @@ import (
 	"github.com/elastic/go-lumber/server"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/receiver"
 	"go.uber.org/zap"
 )
 
@@ -46,7 +47,7 @@ func NewLogsReceiver(
 	logger *zap.Logger,
 	config Config,
 	nextConsumer consumer.Logs,
-) (component.LogsReceiver, error) {
+) (receiver.Logs, error) {
 	if nextConsumer == nil {
 		return nil, errNilNextLogsConsumer
 	}
