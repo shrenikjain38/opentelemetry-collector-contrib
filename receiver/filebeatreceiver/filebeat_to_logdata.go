@@ -73,8 +73,6 @@ func addAttributeValue(logger *zap.Logger, originalValue interface{}, dest pcomm
 	case nil:
 	case string:
 		dest.SetStr(value)
-	case int64:
-		dest.SetInt(value)
 	case float64:
 		dest.SetDouble(value)
 	case bool:
