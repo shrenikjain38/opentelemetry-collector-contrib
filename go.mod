@@ -104,6 +104,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dotnetdiagnosticsreceiver v0.70.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearchreceiver v0.70.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/expvarreceiver v0.70.0
+	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filebeatreceiver v0.70.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver v0.70.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/flinkmetricsreceiver v0.70.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/fluentforwardreceiver v0.70.0
@@ -337,6 +338,7 @@ require (
 	github.com/edsrzf/mmap-go v1.1.0 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.1.0 // indirect
 	github.com/elastic/go-elasticsearch/v8 v8.5.0 // indirect
+	github.com/elastic/go-lumber v0.1.1 // indirect
 	github.com/elastic/go-structform v0.0.10 // indirect
 	github.com/emicklei/go-restful/v3 v3.9.0 // indirect
 	github.com/envoyproxy/go-control-plane v0.10.3 // indirect
@@ -963,6 +965,8 @@ replace github.com/open-telemetry/opentelemetry-collector-contrib/receiver/dotne
 replace github.com/open-telemetry/opentelemetry-collector-contrib/receiver/elasticsearchreceiver => ./receiver/elasticsearchreceiver
 
 replace github.com/open-telemetry/opentelemetry-collector-contrib/receiver/expvarreceiver => ./receiver/expvarreceiver
+
+replace github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filebeatreceiver => ./receiver/filebeatreceiver
 
 replace github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filelogreceiver => ./receiver/filelogreceiver
 

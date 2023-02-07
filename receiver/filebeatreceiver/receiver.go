@@ -90,7 +90,7 @@ func (r *FilebeatReceiver) goReceive(ctx context.Context) {
 		for batch := range r.server.ReceiveChan() {
 			err := r.consumeLogs(ctx, batch)
 			if err != nil {
-				fmt.Errorf("Unable to consume filebeat events from batch %w", err)
+				fmt.Println("Unable to consume filebeat events from batch %w", err)
 				return
 			}
 		}

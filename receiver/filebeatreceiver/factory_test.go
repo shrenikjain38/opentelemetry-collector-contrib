@@ -20,7 +20,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 )
@@ -41,8 +41,8 @@ func Test_Factory(t *testing.T) {
 			desc: "creates a new factory with valid default config",
 			testFunc: func(t *testing.T) {
 				var expectedCfg component.Config = &Config{
-					ReceiverSettings: config.NewReceiverSettings(component.NewID(typeStr)),
-					Endpoint:         defaultEndpoint,
+					TCPAddr:  confignet.TCPAddr{Endpoint: defaultEndpoint},
+					Endpoint: defaultEndpoint,
 				}
 
 				require.Equal(t, expectedCfg, createDefaultConfig())
@@ -65,7 +65,7 @@ func Test_Factory(t *testing.T) {
 			desc: "creates a new factory and createLogsReceiver returns error with incorrect config",
 			testFunc: func(t *testing.T) {
 				var cfg component.Config = &Config{
-					ReceiverSettings: config.NewReceiverSettings(component.NewID(typeStr)),
+					TCPAddr: confignet.TCPAddr{Endpoint: defaultEndpoint},
 				}
 				_, err := createLogsReceiver(
 					context.Background(),

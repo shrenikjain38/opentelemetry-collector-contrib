@@ -20,7 +20,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component"
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/receiver/receivertest"
 )
@@ -34,7 +34,7 @@ func Test_NewLogsReceiver(t *testing.T) {
 			desc: "creates a new LogsReceiver returns error with nil endpoint",
 			testFunc: func(t *testing.T) {
 				var cfg component.Config = &Config{
-					ReceiverSettings: config.NewReceiverSettings(component.NewID(typeStr)),
+					TCPAddr: confignet.TCPAddr{Endpoint: defaultEndpoint},
 				}
 				_, err := createLogsReceiver(
 					context.Background(),

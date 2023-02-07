@@ -15,13 +15,13 @@
 package filebeatreceiver // import "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/filebeatreceiver"
 
 import (
-	"go.opentelemetry.io/collector/config"
+	"go.opentelemetry.io/collector/config/confignet"
 	"go.opentelemetry.io/collector/config/configtls"
 )
 
 // Config defines configuration for the Filebeat receiver.
 type Config struct {
-	config.ReceiverSettings `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
+	confignet.TCPAddr `mapstructure:",squash"` // squash ensures fields are correctly decoded in embedded struct
 	// Endpoint configures the listening address for the server.
 	Endpoint string `mapstructure:"endpoint"`
 
