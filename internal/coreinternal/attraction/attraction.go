@@ -452,3 +452,17 @@ func getMatchingKeys(regexp *regexp.Regexp, attrs pcommon.Map) []string {
 	})
 	return keys
 }
+
+func Flatten(logger *zap.Logger, prefix string, src map[string]interface{}, dest map[string]interface{}) {
+	if len(prefix) > 0 {
+		prefix += "."
+	}
+	for key, value := range src {
+		switch child := value.(type) {
+		case map[string]interface{}:
+			Flatten(logger, prefix+key, child, dest)
+		default:
+			dest[prefix+key] = value
+		}
+	}
+}
