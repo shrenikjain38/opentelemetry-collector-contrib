@@ -48,3 +48,17 @@ func CloneStringMap(m map[string]string) map[string]string {
 	}
 	return m2
 }
+
+func Flatten(prefix string, src map[string]interface{}, dest map[string]interface{}) {
+	if len(prefix) > 0 {
+		prefix += "."
+	}
+	for key, value := range src {
+		switch child := value.(type) {
+		case map[string]interface{}:
+			Flatten(prefix+key, child, dest)
+		default:
+			dest[prefix+key] = value
+		}
+	}
+}

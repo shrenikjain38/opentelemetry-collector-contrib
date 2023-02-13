@@ -17,6 +17,7 @@ package maps
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -49,4 +50,43 @@ func TestCloneStringMap(t *testing.T) {
 	}
 
 	require.Equal(t, expected, actual)
+}
+
+func TestFlatten(t *testing.T) {
+	mapData := map[string]interface{}{
+		"agent":   "unknown",
+		"offset":  2,
+		"boolVal": true,
+		"pods":    []string{"pod1", "pod2"},
+		"k8s": map[string]interface{}{
+			"cluster": map[string]interface{}{
+				"name": "clusterName",
+			},
+			"podId": "podId",
+		},
+		"Null": nil,
+	}
+	dest := make(map[string]interface{})
+
+	Flatten("", mapData, dest)
+	assert.EqualValues(t, len(dest), 7)
+	assert.EqualValues(t, dest["agent"], "unknown")
+	assert.EqualValues(t, dest["offset"], 2)
+	assert.EqualValues(t, dest["boolVal"], true)
+	assert.EqualValues(t, dest["k8s.cluster.name"], "clusterName")
+	assert.EqualValues(t, dest["k8s.podId"], "podId")
+	assert.EqualValues(t, dest["Null"], nil)
+	assert.EqualValues(t, dest["pods"], []string{"pod1", "pod2"})
+
+	// In cases where attribute key is provided as prefix
+	dest = make(map[string]interface{})
+	Flatten("key", mapData, dest)
+	assert.EqualValues(t, len(dest), 7)
+	assert.EqualValues(t, dest["key.agent"], "unknown")
+	assert.EqualValues(t, dest["key.offset"], 2)
+	assert.EqualValues(t, dest["key.boolVal"], true)
+	assert.EqualValues(t, dest["key.k8s.cluster.name"], "clusterName")
+	assert.EqualValues(t, dest["key.k8s.podId"], "podId")
+	assert.EqualValues(t, dest["key.Null"], nil)
+	assert.EqualValues(t, dest["key.pods"], []string{"pod1", "pod2"})
 }
