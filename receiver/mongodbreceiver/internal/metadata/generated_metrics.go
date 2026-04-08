@@ -182,6 +182,32 @@ var MapAttributeMemoryType = map[string]AttributeMemoryType{
 	"virtual":  AttributeMemoryTypeVirtual,
 }
 
+// AttributeMongodbOperationStatus specifies the value mongodb.operation.status attribute.
+type AttributeMongodbOperationStatus int
+
+const (
+	_ AttributeMongodbOperationStatus = iota
+	AttributeMongodbOperationStatusActive
+	AttributeMongodbOperationStatusWaiting
+)
+
+// String returns the string representation of the AttributeMongodbOperationStatus.
+func (av AttributeMongodbOperationStatus) String() string {
+	switch av {
+	case AttributeMongodbOperationStatusActive:
+		return "active"
+	case AttributeMongodbOperationStatusWaiting:
+		return "waiting"
+	}
+	return ""
+}
+
+// MapAttributeMongodbOperationStatus is a helper map of string to AttributeMongodbOperationStatus attribute value.
+var MapAttributeMongodbOperationStatus = map[string]AttributeMongodbOperationStatus{
+	"active":  AttributeMongodbOperationStatusActive,
+	"waiting": AttributeMongodbOperationStatusWaiting,
+}
+
 // AttributeOperation specifies the value operation attribute.
 type AttributeOperation int
 

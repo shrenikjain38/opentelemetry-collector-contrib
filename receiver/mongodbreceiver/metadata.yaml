@@ -108,6 +108,12 @@ attributes:
   mongodb.operation.id:
     description: Identifier of the MongoDB operation.
     type: string
+  mongodb.operation.status:
+    description: Simplified status of the MongoDB operation.
+    type: string
+    enum:
+      - active
+      - waiting
   mongodb.query.signature:
     description: A unique signature for the MongoDB query.
     type: string
@@ -157,6 +163,7 @@ events:
       - user.name
       - mongodb.application.name
       - mongodb.operation.id
+      - mongodb.operation.status
       - mongodb.query.signature
       - mongodb.operation.duration
 

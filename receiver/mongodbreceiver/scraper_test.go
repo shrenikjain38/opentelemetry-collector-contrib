@@ -68,6 +68,47 @@ func TestGenerateInstanceID(t *testing.T) {
 	})
 }
 
+func TestDeriveOperationStatus(t *testing.T) {
+	testCases := []struct {
+		name     string
+		op       bson.M
+		expected metadata.AttributeMongodbOperationStatus
+		ok       bool
+	}{
+		{
+			name:     "active operation",
+			op:       bson.M{"active": true},
+			expected: metadata.AttributeMongodbOperationStatusActive,
+			ok:       true,
+		},
+		{
+			name:     "waiting for lock takes precedence",
+			op:       bson.M{"active": true, "waitingForLock": true},
+			expected: metadata.AttributeMongodbOperationStatusWaiting,
+			ok:       true,
+		},
+		{
+			name:     "waiting for flow control",
+			op:       bson.M{"active": true, "waitingForFlowControl": true},
+			expected: metadata.AttributeMongodbOperationStatusWaiting,
+			ok:       true,
+		},
+		{
+			name: "unsupported status",
+			op:   bson.M{"active": false},
+			ok:   false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			actual, ok := deriveOperationStatus(tc.op)
+			require.Equal(t, tc.ok, ok)
+			require.Equal(t, tc.expected, actual)
+		})
+	}
+}
+
 func TestScraperLifecycle(t *testing.T) {
 	f := NewFactory()
 	cfg := f.CreateDefaultConfig().(*Config)

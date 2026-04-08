@@ -572,6 +572,7 @@ query sample
 | user.name | Name of the user associated with the operation. | Any Str | - |
 | mongodb.application.name | The identifier of the client application which ran the operation | Any Str | - |
 | mongodb.operation.id | Identifier of the MongoDB operation. | Any Str | - |
+| mongodb.operation.status | Simplified status of the MongoDB operation. | Str: ``active``, ``waiting`` | - |
 | mongodb.query.signature | A unique signature for the MongoDB query. | Any Str | - |
 | mongodb.operation.duration | The duration of the MongoDB operation in seconds. | Any Double | - |
 

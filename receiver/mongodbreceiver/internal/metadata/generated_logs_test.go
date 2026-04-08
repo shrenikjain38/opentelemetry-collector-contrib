@@ -4,9 +4,6 @@ package metadata
 
 import (
 	"context"
-	"testing"
-	"time"
-
 	"github.com/stretchr/testify/assert"
 	"go.opentelemetry.io/collector/pdata/pcommon"
 	"go.opentelemetry.io/collector/pdata/plog"
@@ -14,6 +11,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest/observer"
+	"testing"
+	"time"
 )
 
 type eventsTestDataSet int
@@ -131,7 +130,7 @@ func TestLogsBuilder(t *testing.T) {
 			allEventsCount := 0
 
 			allEventsCount++
-			lb.RecordDbServerQuerySampleEvent(ctx, timestamp, "client.address-val", 11, AttributeDbSystemNameMongodb, "db.namespace-val", "db.collection.name-val", "db.operation.name-val", "db.query.text-val", "user.name-val", "mongodb.application.name-val", "mongodb.operation.id-val", "mongodb.query.signature-val", 26.100000)
+			lb.RecordDbServerQuerySampleEvent(ctx, timestamp, "client.address-val", 11, AttributeDbSystemNameMongodb, "db.namespace-val", "db.collection.name-val", "db.operation.name-val", "db.query.text-val", "user.name-val", "mongodb.application.name-val", "mongodb.operation.id-val", AttributeMongodbOperationStatusActive, "mongodb.query.signature-val", 26.100000)
 
 			rb := lb.NewResourceBuilder()
 			rb.SetServerAddress("server.address-val")
@@ -196,6 +195,9 @@ func TestLogsBuilder(t *testing.T) {
 					attrVal, ok = lr.Attributes().Get("mongodb.operation.id")
 					assert.True(t, ok)
 					assert.Equal(t, "mongodb.operation.id-val", attrVal.Str())
+					attrVal, ok = lr.Attributes().Get("mongodb.operation.status")
+					assert.True(t, ok)
+					assert.Equal(t, "active", attrVal.Str())
 					attrVal, ok = lr.Attributes().Get("mongodb.query.signature")
 					assert.True(t, ok)
 					assert.Equal(t, "mongodb.query.signature-val", attrVal.Str())

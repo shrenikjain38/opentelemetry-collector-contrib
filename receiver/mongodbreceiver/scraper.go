@@ -37,11 +37,14 @@ const (
 	namespaceKey       = "ns"
 	commandKey         = "command"
 	opKey              = "op"
+	activeKey          = "active"
 	durationMicrosKey  = "microsecs_running"
 	clientKey          = "client"
 	applicationNameKey = "appName"
 	effectiveUsersKey  = "effectiveUsers"
 	operationIDKey     = "opid"
+	waitingForLockKey  = "waitingForLock"
+	waitingForFCKey    = "waitingForFlowControl"
 )
 
 // generateInstanceID generates a deterministic UUID v5 from server address and port.
@@ -205,6 +208,11 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 		command := getValue[bson.D](op, commandKey)
 		opType := getValue[string](op, opKey)
 		commandType := command[0].Key
+		operationStatus, ok := deriveOperationStatus(op)
+		if !ok {
+			s.logger.Debug("Skipping operation without supported status", zap.Any("operation", op))
+			continue
+		}
 		durationSecs := float64(getValue[int64](op, durationMicrosKey)) / 1_000_000.0
 		clientAddr := getValue[string](op, clientKey)
 		applicationName := getValue[string](op, applicationNameKey)
@@ -234,6 +242,7 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 			zap.String("application_name", applicationName),
 			zap.String("user_name", userName),
 			zap.String("operation_id", operationID),
+			zap.String("operation_status", operationStatus.String()),
 			zap.String("server", server),
 			zap.Int("port", port), zap.String("database_name", databaseName))
 		s.lb.RecordDbServerQuerySampleEvent(
@@ -249,6 +258,7 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 			userName,
 			applicationName,
 			operationID,
+			operationStatus,
 			querySignature,
 			durationSecs,
 		)
@@ -262,6 +272,16 @@ func extractOperationID(op bson.M) string {
 		return fmt.Sprintf("%v", opIDRaw)
 	}
 	return ""
+}
+
+func deriveOperationStatus(op bson.M) (metadata.AttributeMongodbOperationStatus, bool) {
+	if getValue[bool](op, waitingForLockKey) || getValue[bool](op, waitingForFCKey) {
+		return metadata.AttributeMongodbOperationStatusWaiting, true
+	}
+	if getValue[bool](op, activeKey) {
+		return metadata.AttributeMongodbOperationStatusActive, true
+	}
+	return 0, false
 }
 
 func extractEffectiveUserName(op bson.M) string {
