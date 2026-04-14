@@ -17,7 +17,7 @@ type eventDbServerQuerySample struct {
 	config EventConfig         // event config provided by user.
 }
 
-func (e *eventDbServerQuerySample) recordEvent(ctx context.Context, timestamp pcommon.Timestamp, clientAddressAttributeValue string, clientPortAttributeValue int64, dbSystemNameAttributeValue string, dbNamespaceAttributeValue string, dbCollectionNameAttributeValue string, dbOperationNameAttributeValue string, dbQueryTextAttributeValue string, userNameAttributeValue string, mongodbApplicationNameAttributeValue string, mongodbOperationIDAttributeValue string, mongodbOperationStatusAttributeValue string, mongodbQuerySignatureAttributeValue string, mongodbOperationDurationAttributeValue float64) {
+func (e *eventDbServerQuerySample) recordEvent(ctx context.Context, timestamp pcommon.Timestamp, clientAddressAttributeValue string, clientPortAttributeValue int64, dbSystemNameAttributeValue string, dbNamespaceAttributeValue string, dbCollectionNameAttributeValue string, dbOperationNameAttributeValue string, dbQueryTextAttributeValue string, userNameAttributeValue string, mongodbApplicationNameAttributeValue string, mongodbOperationIDAttributeValue string, mongodbOperationStatusAttributeValue string, mongodbOperationDurationAttributeValue float64) {
 	if !e.config.Enabled {
 		return
 	}
@@ -40,7 +40,6 @@ func (e *eventDbServerQuerySample) recordEvent(ctx context.Context, timestamp pc
 	dp.Attributes().PutStr("mongodb.application.name", mongodbApplicationNameAttributeValue)
 	dp.Attributes().PutStr("mongodb.operation.id", mongodbOperationIDAttributeValue)
 	dp.Attributes().PutStr("mongodb.operation.status", mongodbOperationStatusAttributeValue)
-	dp.Attributes().PutStr("mongodb.query.signature", mongodbQuerySignatureAttributeValue)
 	dp.Attributes().PutDouble("mongodb.operation.duration", mongodbOperationDurationAttributeValue)
 
 }
@@ -186,6 +185,6 @@ func (lb *LogsBuilder) Emit(options ...ResourceLogsOption) plog.Logs {
 }
 
 // RecordDbServerQuerySampleEvent adds a log record of db.server.query_sample event.
-func (lb *LogsBuilder) RecordDbServerQuerySampleEvent(ctx context.Context, timestamp pcommon.Timestamp, clientAddressAttributeValue string, clientPortAttributeValue int64, dbSystemNameAttributeValue AttributeDbSystemName, dbNamespaceAttributeValue string, dbCollectionNameAttributeValue string, dbOperationNameAttributeValue string, dbQueryTextAttributeValue string, userNameAttributeValue string, mongodbApplicationNameAttributeValue string, mongodbOperationIDAttributeValue string, mongodbOperationStatusAttributeValue AttributeMongodbOperationStatus, mongodbQuerySignatureAttributeValue string, mongodbOperationDurationAttributeValue float64) {
-	lb.eventDbServerQuerySample.recordEvent(ctx, timestamp, clientAddressAttributeValue, clientPortAttributeValue, dbSystemNameAttributeValue.String(), dbNamespaceAttributeValue, dbCollectionNameAttributeValue, dbOperationNameAttributeValue, dbQueryTextAttributeValue, userNameAttributeValue, mongodbApplicationNameAttributeValue, mongodbOperationIDAttributeValue, mongodbOperationStatusAttributeValue.String(), mongodbQuerySignatureAttributeValue, mongodbOperationDurationAttributeValue)
+func (lb *LogsBuilder) RecordDbServerQuerySampleEvent(ctx context.Context, timestamp pcommon.Timestamp, clientAddressAttributeValue string, clientPortAttributeValue int64, dbSystemNameAttributeValue AttributeDbSystemName, dbNamespaceAttributeValue string, dbCollectionNameAttributeValue string, dbOperationNameAttributeValue string, dbQueryTextAttributeValue string, userNameAttributeValue string, mongodbApplicationNameAttributeValue string, mongodbOperationIDAttributeValue string, mongodbOperationStatusAttributeValue AttributeMongodbOperationStatus, mongodbOperationDurationAttributeValue float64) {
+	lb.eventDbServerQuerySample.recordEvent(ctx, timestamp, clientAddressAttributeValue, clientPortAttributeValue, dbSystemNameAttributeValue.String(), dbNamespaceAttributeValue, dbCollectionNameAttributeValue, dbOperationNameAttributeValue, dbQueryTextAttributeValue, userNameAttributeValue, mongodbApplicationNameAttributeValue, mongodbOperationIDAttributeValue, mongodbOperationStatusAttributeValue.String(), mongodbOperationDurationAttributeValue)
 }

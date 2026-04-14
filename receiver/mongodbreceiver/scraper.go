@@ -172,7 +172,6 @@ func (s *mongodbScraper) scrapeLogs(ctx context.Context) (plog.Logs, error) {
 	}
 
 	now := pcommon.NewTimestampFromTime(time.Now())
-	s.logger.Info("currentOp result", zap.Any("operations", operations)) // TODO Remove this
 
 	s.processCurrentOp(ctx, operations, now)
 
@@ -197,8 +196,6 @@ func (s *mongodbScraper) scrapeLogs(ctx context.Context) (plog.Logs, error) {
 }
 
 func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson.M, now pcommon.Timestamp) {
-	queryCount := 0
-	// Add a condition if the current operation is valid or not
 	for _, op := range operations {
 		if !s.shouldIncludeOperation(op) {
 			continue
@@ -232,7 +229,6 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 		collectionName := getCollectionFromNamespace(namespace)
 		cleanedCommand := cleanCommand(command)
 		obfuscatedStatement := s.obfuscator.obfuscateMongoDBString(cleanedCommand.String())
-		querySignature := generateQuerySignature(obfuscatedStatement)
 
 		s.logger.Debug("processing operation", zap.Any("command", command),
 			zap.String("op_type", opType),
@@ -251,7 +247,7 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 			server,
 			int64(port),
 			metadata.AttributeDbSystemNameMongodb,
-			databaseName,
+			namespace,
 			collectionName,
 			commandType,
 			obfuscatedStatement,
@@ -259,12 +255,10 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 			applicationName,
 			operationID,
 			operationStatus,
-			querySignature,
 			durationSecs,
 		)
-		queryCount++
 	}
-	s.logger.Debug("Processed MongoDB current operations", zap.Int("total_operations", len(operations)), zap.Int("processed_queries", queryCount))
+	s.logger.Debug("Processed MongoDB current operations", zap.Int("total_operations", len(operations)))
 }
 
 func extractOperationID(op bson.M) string {

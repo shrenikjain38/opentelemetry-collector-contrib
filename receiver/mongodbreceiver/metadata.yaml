@@ -114,9 +114,6 @@ attributes:
     enum:
       - active
       - waiting
-  mongodb.query.signature:
-    description: A unique signature for the MongoDB query.
-    type: string
   operation:
     description: The MongoDB operation being counted.
     type: string
@@ -164,7 +161,6 @@ events:
       - mongodb.application.name
       - mongodb.operation.id
       - mongodb.operation.status
-      - mongodb.query.signature
       - mongodb.operation.duration
 
 metrics:

@@ -227,6 +227,46 @@ func TestGetVersion(t *testing.T) {
 	require.Equal(t, "4.4.10", version.String())
 }
 
+func TestCurrentOp(t *testing.T) {
+	mont := drivertest.NewMockDeployment()
+	mont.AddResponses(bson.D{
+		bson.E{Key: "ok", Value: 1},
+		bson.E{Key: "cursor", Value: bson.D{
+			bson.E{Key: "id", Value: int64(0)},
+			bson.E{Key: "ns", Value: "admin.$cmd.aggregate"},
+			bson.E{Key: "firstBatch", Value: bson.A{
+				bson.D{
+					bson.E{Key: "type", Value: "op"},
+					bson.E{Key: "ns", Value: "testdb.testcol"},
+					bson.E{Key: "op", Value: "query"},
+					bson.E{Key: "secs_running", Value: int32(5)},
+				},
+				bson.D{
+					bson.E{Key: "type", Value: "op"},
+					bson.E{Key: "ns", Value: "testdb.anothercol"},
+					bson.E{Key: "op", Value: "insert"},
+					bson.E{Key: "secs_running", Value: int32(1)},
+				},
+			}},
+		}},
+	})
+	opts := options.Client()
+	//nolint:staticcheck // Using deprecated Deployment field for testing purposes
+	opts.Deployment = mont
+	c, err := mongo.Connect(opts)
+	require.NoError(t, err)
+
+	client := &mongodbClient{
+		Client: c,
+		logger: zap.NewNop(),
+	}
+	ops, err := client.CurrentOp(t.Context())
+	require.NoError(t, err)
+	require.Len(t, ops, 2)
+	require.Equal(t, "query", ops[0]["op"])
+	require.Equal(t, "insert", ops[1]["op"])
+}
+
 func TestGetVersionFailures(t *testing.T) {
 	mt := drivertest.NewMockDeployment()
 
