@@ -165,34 +165,50 @@ func (s *mongodbScraper) scrape(ctx context.Context) (pmetric.Metrics, error) {
 }
 
 func (s *mongodbScraper) scrapeLogs(ctx context.Context) (plog.Logs, error) {
-	operations, err := s.client.CurrentOp(ctx)
-	if err != nil {
-		s.logger.Error("Failed to get current operations", zap.Error(err))
+	now := pcommon.NewTimestampFromTime(time.Now())
+
+	if err := s.scrapeLogsFromClient(ctx, s.client, now); err != nil {
 		return plog.NewLogs(), err
 	}
 
-	now := pcommon.NewTimestampFromTime(time.Now())
+	for _, c := range s.secondaryClients {
+		if err := s.scrapeLogsFromClient(ctx, c, now); err != nil {
+			s.logger.Warn("Failed to scrape logs from secondary", zap.Error(err))
+		}
+	}
+
+	return s.lb.Emit(), nil
+}
+
+func (s *mongodbScraper) scrapeLogsFromClient(ctx context.Context, c client, now pcommon.Timestamp) error {
+	operations, err := c.CurrentOp(ctx)
+	if err != nil {
+		s.logger.Error("Failed to get current operations", zap.Error(err))
+		return err
+	}
 
 	s.processCurrentOp(ctx, operations, now)
 
-	serverStatus, err := s.client.ServerStatus(ctx, "admin")
+	serverStatus, err := c.ServerStatus(ctx, "admin")
 	if err != nil {
 		s.logger.Debug("Failed to get server status for logs", zap.Error(err))
-		return s.lb.Emit(), nil
+		s.lb.EmitForResource()
+		return nil
 	}
 
 	serverAddress, serverPort, err := serverAddressAndPort(serverStatus)
 	if err != nil {
 		s.logger.Debug("Failed to extract server address and port for logs", zap.Error(err))
-		return s.lb.Emit(), nil
+		s.lb.EmitForResource()
+		return nil
 	}
 
 	rb := s.lb.NewResourceBuilder()
 	rb.SetServerAddress(serverAddress)
 	rb.SetServerPort(serverPort)
 	rb.SetServiceInstanceID(generateInstanceID(serverAddress, serverPort))
-
-	return s.lb.Emit(metadata.WithLogsResource(rb.Emit())), nil
+	s.lb.EmitForResource(metadata.WithLogsResource(rb.Emit()))
+	return nil
 }
 
 func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson.M, now pcommon.Timestamp) {
@@ -309,8 +325,8 @@ func (s *mongodbScraper) shouldIncludeOperation(op bson.M) bool {
 		return false
 	}
 	// Since currentOp is on a
-	if db := getDBFromNamespace(getValue[string](op, namespaceKey)); db == "admin" {
-		s.logger.Debug("Skipping operation for admin database", zap.Any("operation", op))
+	if db := getDBFromNamespace(getValue[string](op, namespaceKey)); db == "admin" || db == "local" {
+		s.logger.Debug("Skipping operation for admin and local database", zap.Any("operation", op))
 		return false
 	}
 
