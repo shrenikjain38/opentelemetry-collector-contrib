@@ -4,9 +4,6 @@
 package mongodbreceiver // import "github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongodbreceiver"
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-
 	"github.com/DataDog/datadog-agent/pkg/obfuscate"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
@@ -27,14 +24,8 @@ func newObfuscator() *obfuscator {
 	}))
 }
 
-func (o *obfuscator) obfuscateMongoDBString(sql string) string {
-	return (*obfuscate.Obfuscator)(o).ObfuscateMongoDBString(sql)
-}
-
-// generateQuerySignature creates a unique signature for the query
-func generateQuerySignature(obfuscatedStatement string) string {
-	hash := sha256.Sum256([]byte(obfuscatedStatement))
-	return hex.EncodeToString(hash[:8])
+func (o *obfuscator) obfuscateMongoDBString(command string) string {
+	return (*obfuscate.Obfuscator)(o).ObfuscateMongoDBString(command)
 }
 
 func cleanCommand(command bson.D) bson.D {

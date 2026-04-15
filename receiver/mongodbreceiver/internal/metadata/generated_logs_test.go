@@ -130,7 +130,7 @@ func TestLogsBuilder(t *testing.T) {
 			allEventsCount := 0
 
 			allEventsCount++
-			lb.RecordDbServerQuerySampleEvent(ctx, timestamp, "client.address-val", 11, AttributeDbSystemNameMongodb, "db.namespace-val", "db.collection.name-val", "db.operation.name-val", "db.query.text-val", "user.name-val", "mongodb.application.name-val", "mongodb.operation.id-val", AttributeMongodbOperationStatusActive, 26.100000)
+			lb.RecordDbServerQuerySampleEvent(ctx, timestamp, "client.address-val", 11, AttributeDbSystemNameMongodb, "db.namespace-val", "db.collection.name-val", "db.operation.name-val", "db.query.text-val", "user.name-val", "mongodb.application.name-val", "mongodb.database.name-val", "mongodb.operation.id-val", AttributeMongodbOperationStatusActive, "mongodb.operation.type-val", 26.100000)
 
 			rb := lb.NewResourceBuilder()
 			rb.SetServerAddress("server.address-val")
@@ -192,12 +192,18 @@ func TestLogsBuilder(t *testing.T) {
 					attrVal, ok = lr.Attributes().Get("mongodb.application.name")
 					assert.True(t, ok)
 					assert.Equal(t, "mongodb.application.name-val", attrVal.Str())
+					attrVal, ok = lr.Attributes().Get("mongodb.database.name")
+					assert.True(t, ok)
+					assert.Equal(t, "mongodb.database.name-val", attrVal.Str())
 					attrVal, ok = lr.Attributes().Get("mongodb.operation.id")
 					assert.True(t, ok)
 					assert.Equal(t, "mongodb.operation.id-val", attrVal.Str())
 					attrVal, ok = lr.Attributes().Get("mongodb.operation.status")
 					assert.True(t, ok)
 					assert.Equal(t, "active", attrVal.Str())
+					attrVal, ok = lr.Attributes().Get("mongodb.operation.type")
+					assert.True(t, ok)
+					assert.Equal(t, "mongodb.operation.type-val", attrVal.Str())
 					attrVal, ok = lr.Attributes().Get("mongodb.operation.duration")
 					assert.True(t, ok)
 					assert.Equal(t, 26.100000, attrVal.Double())

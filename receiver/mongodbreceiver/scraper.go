@@ -246,17 +246,6 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 		cleanedCommand := cleanCommand(command)
 		obfuscatedStatement := s.obfuscator.obfuscateMongoDBString(cleanedCommand.String())
 
-		s.logger.Debug("processing operation", zap.Any("command", command),
-			zap.String("op_type", opType),
-			zap.String("command_type", commandType),
-			zap.Float64("duration_seconds", durationSecs),
-			zap.String("client_addr", clientAddr),
-			zap.String("application_name", applicationName),
-			zap.String("user_name", userName),
-			zap.String("operation_id", operationID),
-			zap.String("operation_status", operationStatus.String()),
-			zap.String("server", server),
-			zap.Int("port", port), zap.String("database_name", databaseName))
 		s.lb.RecordDbServerQuerySampleEvent(
 			ctx,
 			now,
@@ -269,8 +258,10 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 			obfuscatedStatement,
 			userName,
 			applicationName,
+			databaseName,
 			operationID,
 			operationStatus,
+			opType,
 			durationSecs,
 		)
 	}
@@ -324,7 +315,7 @@ func (s *mongodbScraper) shouldIncludeOperation(op bson.M) bool {
 		s.logger.Debug("Skipping operation without namespace", zap.Any("operation", op))
 		return false
 	}
-	// Since currentOp is on a
+
 	if db := getDBFromNamespace(getValue[string](op, namespaceKey)); db == "admin" || db == "local" {
 		s.logger.Debug("Skipping operation for admin and local database", zap.Any("operation", op))
 		return false

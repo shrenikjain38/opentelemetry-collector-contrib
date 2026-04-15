@@ -571,8 +571,10 @@ query sample
 | db.query.text | The obfuscated MongoDB command statement. | Any Str | - |
 | user.name | Name of the user associated with the operation. | Any Str | - |
 | mongodb.application.name | The identifier of the client application which ran the operation | Any Str | - |
+| mongodb.database.name | The name of the MongoDB database. | Any Str | - |
 | mongodb.operation.id | Identifier of the MongoDB operation. | Any Str | - |
 | mongodb.operation.status | Simplified status of the MongoDB operation. | Str: ``active``, ``waiting`` | - |
+| mongodb.operation.type | The low-level MongoDB operation type (e.g. query, insert, update, remove, getmore, command). | Any Str | - |
 | mongodb.operation.duration | The duration of the MongoDB operation in seconds. | Any Double | - |
 
 ## Resource Attributes

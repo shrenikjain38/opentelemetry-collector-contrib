@@ -26,16 +26,3 @@ func TestObfuscateCommand(t *testing.T) {
 	require.NotContains(t, obfuscated, "test")
 	require.NotContains(t, obfuscated, "30")
 }
-
-func TestGenerateQuerySignature(t *testing.T) {
-	query1 := `{"find":"users","filter":{"name":"test"}}`
-	query2 := `{"find":"users","filter":{"name":"different"}}`
-
-	sig1 := generateQuerySignature(query1)
-	sig2 := generateQuerySignature(query2)
-	sig1Again := generateQuerySignature(query1)
-
-	require.Equal(t, sig1, sig1Again)
-	require.NotEqual(t, sig1, sig2)
-	require.Len(t, sig1, 16) // 8 bytes hex encoded
-}

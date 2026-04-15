@@ -102,6 +102,9 @@ attributes:
   mongodb.application.name:
     description: The identifier of the client application which ran the operation
     type: string
+  mongodb.database.name:
+    description: The name of the MongoDB database.
+    type: string
   mongodb.operation.duration:
     description: The duration of the MongoDB operation in seconds.
     type: double
@@ -114,6 +117,9 @@ attributes:
     enum:
       - active
       - waiting
+  mongodb.operation.type:
+    description: The low-level MongoDB operation type (e.g. query, insert, update, remove, getmore, command).
+    type: string
   operation:
     description: The MongoDB operation being counted.
     type: string
@@ -159,8 +165,10 @@ events:
       - db.query.text
       - user.name
       - mongodb.application.name
+      - mongodb.database.name
       - mongodb.operation.id
       - mongodb.operation.status
+      - mongodb.operation.type
       - mongodb.operation.duration
 
 metrics:
