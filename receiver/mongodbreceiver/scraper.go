@@ -34,17 +34,17 @@ var (
 )
 
 const (
-	namespaceKey       = "ns"
-	commandKey         = "command"
-	opKey              = "op"
-	activeKey          = "active"
-	durationMicrosKey  = "microsecs_running"
-	clientKey          = "client"
-	applicationNameKey = "appName"
-	effectiveUsersKey  = "effectiveUsers"
-	operationIDKey     = "opid"
-	waitingForLockKey  = "waitingForLock"
-	waitingForFCKey    = "waitingForFlowControl"
+	namespaceKey             = "ns"
+	commandKey               = "command"
+	opKey                    = "op"
+	activeKey                = "active"
+	durationMicrosKey        = "microsecs_running"
+	clientKey                = "client"
+	applicationNameKey       = "appName"
+	effectiveUsersKey        = "effectiveUsers"
+	operationIDKey           = "opid"
+	waitingForLockKey        = "waitingForLock"
+	waitingForFlowControlKey = "waitingForFlowControl"
 )
 
 // generateInstanceID generates a deterministic UUID v5 from server address and port.
@@ -226,7 +226,7 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 			s.logger.Debug("Skipping operation without supported status", zap.Any("operation", op))
 			continue
 		}
-		durationSecs := float64(getValue[int64](op, durationMicrosKey)) / 1_000_000.0
+		durationSeconds := float64(getValue[int64](op, durationMicrosKey)) / 1_000_000.0
 		clientAddr := getValue[string](op, clientKey)
 		applicationName := getValue[string](op, applicationNameKey)
 		userName := extractEffectiveUserName(op)
@@ -262,7 +262,7 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 			operationID,
 			operationStatus,
 			opType,
-			durationSecs,
+			durationSeconds,
 		)
 	}
 	s.logger.Debug("Processed MongoDB current operations", zap.Int("total_operations", len(operations)))
@@ -276,7 +276,7 @@ func extractOperationID(op bson.M) string {
 }
 
 func deriveOperationStatus(op bson.M) (metadata.AttributeMongodbOperationStatus, bool) {
-	if getValue[bool](op, waitingForLockKey) || getValue[bool](op, waitingForFCKey) {
+	if getValue[bool](op, waitingForLockKey) || getValue[bool](op, waitingForFlowControlKey) {
 		return metadata.AttributeMongodbOperationStatusWaiting, true
 	}
 	if getValue[bool](op, activeKey) {
