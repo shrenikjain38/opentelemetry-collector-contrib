@@ -368,6 +368,17 @@ none_set:
       enabled: false
     service.instance.id:
       enabled: false
+override_set:
+  resource_attributes:
+    server.address:
+      enabled: true
+      override_value: "override-server.address"
+    server.port:
+      enabled: true
+      override_value: 123
+    service.instance.id:
+      enabled: true
+      override_value: "override-service.instance.id"
 filter_set_include:
   resource_attributes:
     server.address:

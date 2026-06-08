@@ -1,0 +1,4 @@
+change_type: enhancement
+component: receiver/mongodb
+note: Add override_value support for MongoDB receiver resource attributes.
+issues: []

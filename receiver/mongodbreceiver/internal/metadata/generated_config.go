@@ -7,6 +7,7 @@ import (
 
 	"go.opentelemetry.io/collector/confmap"
 	"go.opentelemetry.io/collector/filter"
+	"go.opentelemetry.io/collector/pdata/pcommon"
 )
 
 // MongodbActiveReadsMetricConfig provides config for the mongodb.active.reads metric.
@@ -1758,9 +1759,11 @@ func DefaultMetricsConfig() MetricsConfig {
 	}
 }
 
-// ResourceAttributeConfig provides common config for a particular resource attribute.
-type ResourceAttributeConfig struct {
+// ServerAddressResourceAttributeConfig provides config for the server.address resource attribute.
+type ServerAddressResourceAttributeConfig struct {
 	Enabled bool `mapstructure:"enabled"`
+	// OverrideValue allows users to override the value of this resource attribute.
+	OverrideValue *string `mapstructure:"override_value"`
 	// Experimental: MetricsInclude defines a list of filters for attribute values.
 	// If the list is not empty, only metrics with matching resource attribute values will be emitted.
 	MetricsInclude []filter.Config `mapstructure:"metrics_include"`
@@ -1772,7 +1775,63 @@ type ResourceAttributeConfig struct {
 	enabledSetByUser bool
 }
 
-func (rac *ResourceAttributeConfig) Unmarshal(parser *confmap.Conf) error {
+func (rac *ServerAddressResourceAttributeConfig) Unmarshal(parser *confmap.Conf) error {
+	if parser == nil {
+		return nil
+	}
+	err := parser.Unmarshal(rac)
+	if err != nil {
+		return err
+	}
+	rac.enabledSetByUser = parser.IsSet("enabled")
+	return nil
+}
+
+// ServerPortResourceAttributeConfig provides config for the server.port resource attribute.
+type ServerPortResourceAttributeConfig struct {
+	Enabled bool `mapstructure:"enabled"`
+	// OverrideValue allows users to override the value of this resource attribute.
+	OverrideValue *int64 `mapstructure:"override_value"`
+	// Experimental: MetricsInclude defines a list of filters for attribute values.
+	// If the list is not empty, only metrics with matching resource attribute values will be emitted.
+	MetricsInclude []filter.Config `mapstructure:"metrics_include"`
+	// Experimental: MetricsExclude defines a list of filters for attribute values.
+	// If the list is not empty, metrics with matching resource attribute values will not be emitted.
+	// MetricsInclude has higher priority than MetricsExclude.
+	MetricsExclude []filter.Config `mapstructure:"metrics_exclude"`
+
+	enabledSetByUser bool
+}
+
+func (rac *ServerPortResourceAttributeConfig) Unmarshal(parser *confmap.Conf) error {
+	if parser == nil {
+		return nil
+	}
+	err := parser.Unmarshal(rac)
+	if err != nil {
+		return err
+	}
+	rac.enabledSetByUser = parser.IsSet("enabled")
+	return nil
+}
+
+// ServiceInstanceIDResourceAttributeConfig provides config for the service.instance.id resource attribute.
+type ServiceInstanceIDResourceAttributeConfig struct {
+	Enabled bool `mapstructure:"enabled"`
+	// OverrideValue allows users to override the value of this resource attribute.
+	OverrideValue *string `mapstructure:"override_value"`
+	// Experimental: MetricsInclude defines a list of filters for attribute values.
+	// If the list is not empty, only metrics with matching resource attribute values will be emitted.
+	MetricsInclude []filter.Config `mapstructure:"metrics_include"`
+	// Experimental: MetricsExclude defines a list of filters for attribute values.
+	// If the list is not empty, metrics with matching resource attribute values will not be emitted.
+	// MetricsInclude has higher priority than MetricsExclude.
+	MetricsExclude []filter.Config `mapstructure:"metrics_exclude"`
+
+	enabledSetByUser bool
+}
+
+func (rac *ServiceInstanceIDResourceAttributeConfig) Unmarshal(parser *confmap.Conf) error {
 	if parser == nil {
 		return nil
 	}
@@ -1786,22 +1845,37 @@ func (rac *ResourceAttributeConfig) Unmarshal(parser *confmap.Conf) error {
 
 // ResourceAttributesConfig provides config for mongodb resource attributes.
 type ResourceAttributesConfig struct {
-	ServerAddress     ResourceAttributeConfig `mapstructure:"server.address"`
-	ServerPort        ResourceAttributeConfig `mapstructure:"server.port"`
-	ServiceInstanceID ResourceAttributeConfig `mapstructure:"service.instance.id"`
+	ServerAddress     ServerAddressResourceAttributeConfig     `mapstructure:"server.address"`
+	ServerPort        ServerPortResourceAttributeConfig        `mapstructure:"server.port"`
+	ServiceInstanceID ServiceInstanceIDResourceAttributeConfig `mapstructure:"service.instance.id"`
 }
 
 func DefaultResourceAttributesConfig() ResourceAttributesConfig {
 	return ResourceAttributesConfig{
-		ServerAddress: ResourceAttributeConfig{
+		ServerAddress: ServerAddressResourceAttributeConfig{
 			Enabled: true,
 		},
-		ServerPort: ResourceAttributeConfig{
+		ServerPort: ServerPortResourceAttributeConfig{
 			Enabled: false,
 		},
-		ServiceInstanceID: ResourceAttributeConfig{
+		ServiceInstanceID: ServiceInstanceIDResourceAttributeConfig{
 			Enabled: true,
 		},
+	}
+}
+
+// applyOverrideValues applies override values to the given resource.
+// For each enabled resource attribute with a non-nil OverrideValue,
+// the override replaces any existing value in the resource.
+func (rac *ResourceAttributesConfig) applyOverrideValues(res pcommon.Resource) {
+	if rac.ServerAddress.Enabled && rac.ServerAddress.OverrideValue != nil {
+		res.Attributes().PutStr("server.address", *rac.ServerAddress.OverrideValue)
+	}
+	if rac.ServerPort.Enabled && rac.ServerPort.OverrideValue != nil {
+		res.Attributes().PutInt("server.port", *rac.ServerPort.OverrideValue)
+	}
+	if rac.ServiceInstanceID.Enabled && rac.ServiceInstanceID.OverrideValue != nil {
+		res.Attributes().PutStr("service.instance.id", *rac.ServiceInstanceID.OverrideValue)
 	}
 }
 
