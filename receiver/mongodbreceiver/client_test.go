@@ -70,7 +70,7 @@ func (fc *fakeClient) IndexStats(ctx context.Context, dbName, collectionName str
 	return args.Get(0).([]bson.M), args.Error(1)
 }
 
-func (fc *fakeClient) RunCommand(ctx context.Context, db string, command bson.M) (bson.M, error) {
+func (fc *fakeClient) RunCommand(ctx context.Context, db string, command any) (bson.M, error) {
 	args := fc.Called(ctx, db, command)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
@@ -90,6 +90,16 @@ func (fc *fakeClient) RunCommand(ctx context.Context, db string, command bson.M)
 func (fc *fakeClient) CurrentOp(ctx context.Context) ([]bson.M, error) {
 	args := fc.Called(ctx)
 	return args.Get(0).([]bson.M), args.Error(1)
+}
+
+func (fc *fakeClient) FindProfileDocs(ctx context.Context, dbName string, filter bson.D, limit int64) ([]profileDoc, error) {
+	args := fc.Called(ctx, dbName, filter, limit)
+	return args.Get(0).([]profileDoc), args.Error(1)
+}
+
+func (fc *fakeClient) GetLog(ctx context.Context) (bson.A, error) {
+	args := fc.Called(ctx)
+	return args.Get(0).(bson.A), args.Error(1)
 }
 
 func TestListDatabaseNames(t *testing.T) {

@@ -30,10 +30,11 @@ func TestObfuscateCommand(t *testing.T) {
 
 	obfuscated := o.obfuscateCommand(cleanedCommand)
 	require.Contains(t, obfuscated, "find")
+	// "users" is the value of the "find" key — kept by KeepValues (collection name).
+	require.Contains(t, obfuscated, "users")
 	require.NotContains(t, obfuscated, "comment")
 	require.NotContains(t, obfuscated, "lsid")
 	require.NotContains(t, obfuscated, "$clusterTime")
-	require.NotContains(t, obfuscated, "users")
 	require.NotContains(t, obfuscated, "test")
 	require.NotContains(t, obfuscated, "30")
 	require.NotContains(t, obfuscated, "session-1")

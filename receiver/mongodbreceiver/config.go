@@ -28,6 +28,7 @@ type Config struct {
 	metadata.MetricsBuilderConfig `mapstructure:",squash"`
 	metadata.LogsBuilderConfig    `mapstructure:",squash"`
 	QuerySampleCollection         QuerySampleCollection `mapstructure:"query_sample_collection"`
+	TopQueryCollection            TopQueryCollection    `mapstructure:"top_query_collection,omitempty"`
 	// Deprecated - Transport option will be removed in v0.102.0
 	Hosts                   []confignet.TCPAddrConfig `mapstructure:"hosts"`
 	Scheme                  string                    `mapstructure:"scheme"`
@@ -46,6 +47,27 @@ type QuerySampleCollection struct {
 
 	// prevent unkeyed literal initialization
 	_ struct{}
+}
+
+// TopQueryCollection holds configuration for the db.server.top_query log event collection.
+type TopQueryCollection struct {
+	// CollectionInterval controls how often top_query scrapes run, independent of the
+	// receiver's main collection_interval. Setting this smaller than collection_interval
+	// has no effect since the controller only ticks at collection_interval.
+	// 0 disables the self-gate — top_query runs on every controller tick.
+	CollectionInterval time.Duration `mapstructure:"collection_interval"`
+	// MaxRowsPerQuery limits the number of system.profile documents fetched per database per scrape.
+	MaxRowsPerQuery int64 `mapstructure:"max_rows_per_query"`
+	// TopQueryCount is the number of top queries to emit per scrape (ranked by execution time).
+	// 0 means no events are emitted (cursors still advance).
+	TopQueryCount int64 `mapstructure:"top_n_query"`
+	// LookbackWindow controls how far back to look on the first scrape (when no cursor exists).
+	LookbackWindow time.Duration `mapstructure:"lookback_window"`
+	// QueryPlanCacheSize is the maximum number of explain plans to cache.
+	// 0 means explain runs on every occurrence but results are not cached.
+	QueryPlanCacheSize int `mapstructure:"query_plan_cache_size"`
+	// QueryPlanCacheTTL is the TTL for cached explain plans.
+	QueryPlanCacheTTL time.Duration `mapstructure:"query_plan_cache_ttl"`
 }
 
 func (c *Config) Validate() error {
@@ -76,6 +98,25 @@ func (c *Config) Validate() error {
 
 	if _, tlsErr := c.LoadTLSConfig(context.Background()); tlsErr != nil {
 		err = multierr.Append(err, fmt.Errorf("error loading tls configuration: %w", tlsErr))
+	}
+
+	if c.TopQueryCollection.MaxRowsPerQuery < 0 {
+		err = multierr.Append(err, errors.New("top_query_collection.max_rows_per_query must not be negative"))
+	}
+	if c.TopQueryCollection.TopQueryCount < 0 {
+		err = multierr.Append(err, errors.New("top_query_collection.top_n_query must not be negative"))
+	}
+	if c.TopQueryCollection.LookbackWindow < 0 {
+		err = multierr.Append(err, errors.New("top_query_collection.lookback_window must not be negative"))
+	}
+	if c.TopQueryCollection.QueryPlanCacheSize < 0 {
+		err = multierr.Append(err, errors.New("top_query_collection.query_plan_cache_size must not be negative"))
+	}
+	if c.TopQueryCollection.CollectionInterval < 0 {
+		err = multierr.Append(err, errors.New("top_query_collection.collection_interval must not be negative"))
+	}
+	if c.TopQueryCollection.QueryPlanCacheTTL < 0 {
+		err = multierr.Append(err, errors.New("top_query_collection.query_plan_cache_ttl must not be negative"))
 	}
 
 	return err

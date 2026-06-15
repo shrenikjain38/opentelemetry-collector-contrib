@@ -14,6 +14,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hashicorp/go-version"
+	lru "github.com/hashicorp/golang-lru/v2/expirable"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config/confignet"
@@ -79,7 +80,8 @@ type mongodbScraper struct {
 	secondaryClients   []client
 	mongoVersion       *version.Version
 	mb                 *metadata.MetricsBuilder
-	lb                 *metadata.LogsBuilder
+	lb                 *metadata.LogsBuilder // used by query_sample ($currentOp) path
+	tlb                *metadata.LogsBuilder // used by top_query (slow-query) path — separate to avoid data race
 	prevReplTimestamp  pcommon.Timestamp
 	prevReplCounts     map[string]int64
 	prevTimestamp      pcommon.Timestamp
@@ -87,6 +89,11 @@ type mongodbScraper struct {
 	prevCounts         map[string]int64
 	prevFlushCount     int64
 	obfuscator         *obfuscator
+	// top_query state
+	planCache             *lru.LRU[string, string]
+	lastScrapeTime        map[string]time.Time
+	lastGetLogTime        time.Time
+	lastTopQueryExecution time.Time
 }
 
 func newMongodbScraper(settings receiver.Settings, config *Config) *mongodbScraper {
@@ -95,6 +102,7 @@ func newMongodbScraper(settings receiver.Settings, config *Config) *mongodbScrap
 		config:             config,
 		mb:                 metadata.NewMetricsBuilder(config.MetricsBuilderConfig, settings),
 		lb:                 metadata.NewLogsBuilder(config.LogsBuilderConfig, settings),
+		tlb:                metadata.NewLogsBuilder(config.LogsBuilderConfig, settings),
 		mongoVersion:       unknownVersion(),
 		prevReplTimestamp:  pcommon.Timestamp(0),
 		prevReplCounts:     make(map[string]int64),
@@ -103,7 +111,19 @@ func newMongodbScraper(settings receiver.Settings, config *Config) *mongodbScrap
 		prevCounts:         make(map[string]int64),
 		prevFlushCount:     0,
 		obfuscator:         newObfuscator(),
+		lastScrapeTime:     make(map[string]time.Time),
+		planCache:          buildPlanCache(config),
 	}
+}
+
+func buildPlanCache(config *Config) *lru.LRU[string, string] {
+	size := config.TopQueryCollection.QueryPlanCacheSize
+	if size <= 0 {
+		// size=0 means no caching (explain still runs, results not cached).
+		// Negative values are rejected by Validate().
+		return nil
+	}
+	return lru.NewLRU[string, string](size, nil, config.TopQueryCollection.QueryPlanCacheTTL)
 }
 
 func (s *mongodbScraper) start(ctx context.Context, _ component.Host) error {
