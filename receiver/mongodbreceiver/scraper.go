@@ -256,7 +256,7 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 		databaseName := getDBFromNamespace(namespace)
 		command := getValue[bson.D](op, commandKey)
 		opType := getValue[string](op, opKey)
-		queryTruncated, commandComment := extractCommandMetadata(command)
+		queryTruncated, commandComment, operationName := extractCommandMetadata(command, opType)
 		preparedReadConflictCount := getInt64Value(op, prepareReadConflictsKey)
 		writeConflictCount := getInt64Value(op, writeConflictsKey)
 		yieldCount := getInt64Value(op, numYieldsKey)
@@ -307,7 +307,7 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 			metadata.AttributeDbSystemNameMongodb,
 			databaseName,
 			collectionName,
-			operationID,
+			operationName,
 			obfuscatedStatement,
 			queryTruncated,
 			userName,
@@ -320,6 +320,7 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 			cursorReturnedDocuments,
 			cursorTailable,
 			lsid,
+			operationID,
 			planSummary,
 			queryFramework,
 			operationState,
@@ -384,13 +385,19 @@ func (s *mongodbScraper) shouldIncludeOperation(op bson.M) bool {
 	return true
 }
 
-func extractCommandMetadata(command bson.D) (bool, []any) {
-	queryTruncated := false
+// extractCommandMetadata extracts the truncation flag, comments, and operation
+// name from a command document.
+func extractCommandMetadata(command bson.D, opType string) (bool, []any, string) {
+	operationName := opType
+	if len(command) > 0 {
+		operationName = command[0].Key
+	}
+	truncated := false
 	comments := []any{}
 	for _, elem := range command {
 		switch elem.Key {
 		case "$truncated":
-			queryTruncated = true
+			truncated = true
 		case commentKey:
 			if values, ok := elem.Value.(bson.A); ok {
 				for _, value := range values {
@@ -401,7 +408,7 @@ func extractCommandMetadata(command bson.D) (bool, []any) {
 			}
 		}
 	}
-	return queryTruncated, comments
+	return truncated, comments, operationName
 }
 
 func stringifyCommandComment(value any) string {
@@ -491,9 +498,8 @@ func getFormattedValue(doc any, key string) string {
 	return fmt.Sprintf("%v", v)
 }
 
-// getJSONValue returns the value for key encoded as MongoDB Extended JSON.
-// It returns "" when the key is missing or when the value encodes to an empty
-// document ("{}"), so attributes are omitted instead of carrying a placeholder.
+// getJSONValue returns the Extended JSON encoding of key's value, or "" if the
+// key is missing, unmarshalable, or encodes to an empty document ("{}").
 func getJSONValue(doc any, key string) string {
 	v, ok := lookup(doc, key)
 	if !ok {
@@ -501,14 +507,8 @@ func getJSONValue(doc any, key string) string {
 	}
 	j, err := bson.MarshalExtJSON(v, false, false)
 	if err != nil {
-		// Unmarshalable values (notably explicit nil) carry no useful JSON
-		// payload; treat them like a missing key rather than leaking a Go
-		// debug representation into telemetry.
 		return ""
 	}
-	// An empty document ("{}") carries no information for downstream consumers;
-	// treat it the same as a missing key so the attribute is omitted rather than
-	// surfacing a misleading placeholder.
 	if s := string(j); s != "{}" {
 		return s
 	}

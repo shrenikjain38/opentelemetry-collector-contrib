@@ -692,8 +692,9 @@ func TestScrapeLogs(t *testing.T) {
 				collectionName, ok := logAttrs.Get("db.collection.name")
 				require.True(t, ok)
 				require.Equal(t, "mycol", collectionName.Str())
-				_, ok = logAttrs.Get("db.operation.name")
-				require.False(t, ok)
+				operationName, ok := logAttrs.Get("db.operation.name")
+				require.True(t, ok)
+				require.Equal(t, "find", operationName.Str())
 				operationType, ok := logAttrs.Get("mongodb.operation.type")
 				require.True(t, ok)
 				require.Equal(t, "query", operationType.Str())
@@ -828,7 +829,7 @@ func TestScrapeLogs(t *testing.T) {
 				originatingCommand, ok := logAttrs.Get("mongodb.cursor.originating_command")
 				require.True(t, ok)
 				require.Contains(t, originatingCommand.Str(), "aggregate")
-				// "mycol" is the value of the "aggregate" key — kept by KeepValues (collection name).
+				// "mycol" is the value of the "aggregate" key, which is in KeepValues — preserved intentionally.
 				require.Contains(t, originatingCommand.Str(), "mycol")
 				require.NotContains(t, originatingCommand.Str(), "sensitive-value")
 				require.NotContains(t, originatingCommand.Str(), "cursor comment")
@@ -1357,7 +1358,7 @@ func TestExtractCommandMetadata(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			truncated, comments := extractCommandMetadata(tt.command)
+			truncated, comments, _ := extractCommandMetadata(tt.command, "")
 			require.Equal(t, tt.expectedTruncated, truncated)
 			require.Equal(t, tt.expectedComments, comments)
 		})

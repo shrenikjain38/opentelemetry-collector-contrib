@@ -130,7 +130,7 @@ func TestLogsBuilder(t *testing.T) {
 			allEventsCount := 0
 
 			allEventsCount++
-			lb.RecordDbServerQuerySampleEvent(ctx, timestamp, "client.address-val", 11, AttributeDbSystemNameMongodb, "db.namespace-val", "db.collection.name-val", "db.operation.id-val", "db.query.text-val", false, "user.name-val", "mongodb.client.app.name-val", false, "mongodb.cursor.id-val", false, "mongodb.cursor.originating_command-val", 31, 33, false, "mongodb.lsid.id-val", "mongodb.operation.plan.summary-val", "mongodb.query.framework-val", AttributeMongodbOperationStateActive, "mongodb.operation.type-val", []any{"mongodb.operation.comment-item1", "mongodb.operation.comment-item2"}, 26.100000, 46, 38, 29, []any{"mongodb.operation.wait.type-item1", "mongodb.operation.wait.type-item2"}, "mongodb.operation.wait.details-val")
+			lb.RecordDbServerQuerySampleEvent(ctx, timestamp, "client.address-val", 11, AttributeDbSystemNameMongodb, "db.namespace-val", "db.collection.name-val", "db.operation.name-val", "db.query.text-val", false, "user.name-val", "mongodb.client.app.name-val", false, "mongodb.cursor.id-val", false, "mongodb.cursor.originating_command-val", 31, 33, false, "mongodb.lsid.id-val", "mongodb.operation.id-val", "mongodb.operation.plan.summary-val", "mongodb.query.framework-val", AttributeMongodbOperationStateActive, "mongodb.operation.type-val", []any{"mongodb.operation.comment-item1", "mongodb.operation.comment-item2"}, 26.100000, 46, 38, 29, []any{"mongodb.operation.wait.type-item1", "mongodb.operation.wait.type-item2"}, "mongodb.operation.wait.details-val")
 
 			allEventsCount++
 			lb.RecordDbServerTopQueryEvent(ctx, timestamp, "db.collection.name-val", "db.namespace-val", "db.query.text-val", AttributeDbSystemNameMongodb, 26.100000, 31, 31, 26.100000, "mongodb.operation.explain_plan-val", "mongodb.operation.explain_plan_hash-val", 31, "mongodb.operation.plan.summary-val", 33, "mongodb.operation.type-val")
@@ -183,9 +183,9 @@ func TestLogsBuilder(t *testing.T) {
 					attrVal, ok = lr.Attributes().Get("db.collection.name")
 					assert.True(t, ok)
 					assert.Equal(t, "db.collection.name-val", attrVal.Str())
-					attrVal, ok = lr.Attributes().Get("db.operation.id")
+					attrVal, ok = lr.Attributes().Get("db.operation.name")
 					assert.True(t, ok)
-					assert.Equal(t, "db.operation.id-val", attrVal.Str())
+					assert.Equal(t, "db.operation.name-val", attrVal.Str())
 					attrVal, ok = lr.Attributes().Get("db.query.text")
 					assert.True(t, ok)
 					assert.Equal(t, "db.query.text-val", attrVal.Str())
@@ -222,6 +222,9 @@ func TestLogsBuilder(t *testing.T) {
 					attrVal, ok = lr.Attributes().Get("mongodb.lsid.id")
 					assert.True(t, ok)
 					assert.Equal(t, "mongodb.lsid.id-val", attrVal.Str())
+					attrVal, ok = lr.Attributes().Get("mongodb.operation.id")
+					assert.True(t, ok)
+					assert.Equal(t, "mongodb.operation.id-val", attrVal.Str())
 					attrVal, ok = lr.Attributes().Get("mongodb.operation.plan.summary")
 					assert.True(t, ok)
 					assert.Equal(t, "mongodb.operation.plan.summary-val", attrVal.Str())
