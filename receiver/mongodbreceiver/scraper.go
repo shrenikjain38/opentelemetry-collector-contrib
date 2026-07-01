@@ -274,7 +274,11 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 		obfuscatedCursorOriginatingCommand := ""
 		if len(cursorOriginatingCommand) > 0 {
 			cleanedCursorOriginatingCommand := cleanCommand(cursorOriginatingCommand)
-			obfuscatedCursorOriginatingCommand = s.obfuscator.obfuscateCommand(cleanedCursorOriginatingCommand)
+			obfuscated, err := s.obfuscator.obfuscateCommand(cleanedCursorOriginatingCommand)
+			if err != nil {
+				s.logger.Debug("Failed to obfuscate originating command", zap.Error(err))
+			}
+			obfuscatedCursorOriginatingCommand = obfuscated
 		}
 		cursorTailable := getValue[bool](cursor, cursorTailableKey)
 		planSummary := getValue[string](op, planSummaryKey)
@@ -297,7 +301,10 @@ func (s *mongodbScraper) processCurrentOp(ctx context.Context, operations []bson
 		clientAddress, clientPort := clientAddressAndPort(clientAddr)
 		collectionName := getCollectionFromNamespace(namespace)
 		cleanedCommand := cleanCommand(command)
-		obfuscatedStatement := s.obfuscator.obfuscateCommand(cleanedCommand)
+		obfuscatedStatement, err := s.obfuscator.obfuscateCommand(cleanedCommand)
+		if err != nil {
+			s.logger.Debug("Failed to obfuscate command", zap.Error(err))
+		}
 
 		s.lb.RecordDbServerQuerySampleEvent(
 			ctx,
