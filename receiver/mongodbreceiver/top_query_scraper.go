@@ -178,6 +178,8 @@ func (s *mongodbScraper) doScrapeTopQueryLogs(ctx context.Context) (plog.Logs, e
 	rb.SetServerAddress(serverAddress)
 	rb.SetServerPort(serverPort)
 	rb.SetServiceInstanceID(generateInstanceID(serverAddress, serverPort))
+	rb.SetServiceName(defaultServiceName)
+	rb.SetServiceNamespace("")
 	s.lb.EmitForResource(metadata.WithLogsResource(rb.Emit()))
 
 	s.lastScrapeTime = serverNow
